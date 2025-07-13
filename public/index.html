@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TenK Hours</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>10,000 Hours</h1>
+            <button class="add-tile-btn" onclick="showAddTilePopup()">Add Tile</button>
+        </header>
+
+        <div id="addTilePopup" class="popup">
+            <input type="text" id="tileName" placeholder="Enter tile name">
+            <button onclick="addTile()">Add</button>
+            <button onclick="closePopup()">Cancel</button>
+        </div>
+
+        <div class="tiles-container" id="tiles">
+            <!-- Tiles will be added here dynamically -->
+        </div>
+
+    </div>
+    <div class="total-hours tile">
+        <span class="tile-name">Total Hours</span>
+        <span class="tile-count">0</span>
+    </div>
+
+    <script>
+        // Load tiles from server when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTiles();
+        });
+
+        async function loadTiles() {
+            try {
+                const response = await fetch('/tiles');
+                const tiles = await response.json();
+                let total_hours = 0;
+                const tilesContainer = document.getElementById('tiles');
+                tilesContainer.innerHTML = '';
+
+                tiles.forEach(tile => {
+                    total_hours = total_hours + tile.hours;
+                    const tileElement = createTileElement(tile);
+                    tileElement.id = `tile-${tile.id}`;
+                    tilesContainer.appendChild(tileElement);
+                });
+                document.querySelector('.total-hours .tile-count').textContent = total_hours;
+            } catch (error) {
+                console.error('Error loading tiles:', error);
+            }
+        }
+
+        function showAddTilePopup() {
+            document.getElementById('addTilePopup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('addTilePopup').style.display = 'none';
+            document.getElementById('tileName').value = '';
+        }
+
+        async function addTile() {
+            const name = document.getElementById('tileName').value.trim();
+            if (name) {
+                try {
+                    const response = await fetch('/tiles', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ title: name })
+                    });
+                    if (response.ok) {
+                        loadTiles();
+                        closePopup();
+                    } else {
+                        throw new Error('Failed to add tile');
+                    }
+                } catch (error) {
+                    console.error('Error adding tile:', error);
+                    alert('Failed to add tile. Please try again.');
+                }
+            }
+        }
+
+        function createTileElement(tile) {
+            const tileDiv = document.createElement('div');
+            tileDiv.className = 'tile';
+            tileDiv.id = `tile-${tile.id}`;
+
+            tileDiv.innerHTML = `
+                <span class="tile-name">${tile.title}</span>
+                <span class="tile-count">${tile.hours}</span>
+                <div class="tile-controls">
+                    <button class="delete-btn" onclick="deleteTile('${tile.id}')">Delete</button>
+                    <button class="minus-btn" onclick="updateCount('${tile.id}', -1)">-</button>
+                    <button class="plus-btn" onclick="updateCount('${tile.id}', 1)">+</button>
+                </div>
+            `;
+
+            return tileDiv;
+        }
+
+        async function deleteTile(id) {
+            try {
+                const response = await fetch(`/tiles/${id}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    loadTiles();
+                }
+            } catch (error) {
+                console.error('Error deleting tile:', error);
+            }
+        }
+
+        async function updateCount(id, change) {
+            try {
+                const response = await fetch(`/tiles/${id}/count`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ change })
+                });
+                if (response.ok) {
+                    loadTiles();
+                }
+            } catch (error) {
+                console.error('Error updating count:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
