@@ -77,7 +77,11 @@ app.post("/tiles", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html" + "/public/styles.css");
+  res.sendFile(__dirname + "/public/index.html");
+});
+
+app.get("/styles.css", (req, res) => {
+  res.sendFile(__dirname + "/public/styles.css");
 });
 
 app.listen(port, () => {
