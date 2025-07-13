@@ -121,3 +121,9 @@ h1 {
 .total-hours .title-name {
   font-weight: normal;
 }
+
+@media screen and (max-width: 540px) {
+  .tile-controls .delete-btn {
+    display: none;
+  }
+}
