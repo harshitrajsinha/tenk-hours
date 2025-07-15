@@ -20,7 +20,7 @@ app.use(express.json());
 app.get("/tiles", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, title, hours FROM tenk_hours WHERE to_display = true"
+      "SELECT id, title, hours FROM tenk_hours WHERE to_display = true order by id desc"
     );
     res.json(result.rows);
   } catch (err) {
